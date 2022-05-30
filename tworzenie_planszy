@@ -1,0 +1,131 @@
+from browser import document
+import random
+
+
+# lista vs krotka?
+def stworz_liste_sasiadow(rozmiar_statku, orientacja, wspX, wspY):
+    sasiedzi = []
+    # poziomy statek
+    if orientacja == 0:
+        sasiedzi.append([wspX - 1, wspY])
+        sasiedzi.append([wspX + rozmiar_statku, wspY])
+        for i in range(-1, rozmiar_statku + 1):
+            sasiedzi.append([wspX - 1, wspY - 1])
+            sasiedzi.append([wspX - 1, wspY + 1])
+            wspX += 1
+    # pionowy statek
+    if orientacja == 1:
+        sasiedzi.append([wspX, wspY - 1])
+        sasiedzi.append([wspX, wspY + rozmiar_statku])
+        for i in range(-1, rozmiar_statku + 1):
+            sasiedzi.append([wspX - 1, wspY - 1])
+            sasiedzi.append([wspX + 1, wspY - 1])
+            wspY += 1
+    return sasiedzi
+
+
+def losuj_statek(rozmiar_statku, plansza, lista_sasiadow):
+    statek_pasuje = 0
+    # przeprowadzam losowanie tak długo aż wylosuje sensowne wspolrzedne
+    while statek_pasuje != rozmiar_statku:
+        wspolrzednaX = random.randint(0, len(plansza) - 1)
+        wspolrzednaY = random.randint(0, len(plansza) - 1)
+        orientacja = random.randint(0, 1)
+        pom_wspX = wspolrzednaX
+        pom_wspY = wspolrzednaY
+        for i in range(0, rozmiar_statku):
+            # sprawdzam, czy statek nie wejdzie w inne statki/granice/pola sasiadow - jak tak to losuje jeszcze raz
+            if wspolrzednaX < len(plansza) and wspolrzednaY < len(plansza) \
+                    and plansza[wspolrzednaX][wspolrzednaY] == 0 and [wspolrzednaX, wspolrzednaY] not in lista_sasiadow:
+                statek_pasuje += 1
+            else:
+                statek_pasuje = 0
+                break
+                # TODO ten break...
+            if orientacja == 0:
+                wspolrzednaX += 1
+            elif orientacja == 1:
+                wspolrzednaY += 1
+    return [pom_wspX, pom_wspY, orientacja]
+
+
+# wstawianie konkretnego statku na plansze jezeli jest to mozliwe
+# ulepszenie: sprawdz czy wstawianie w lewo/w dol przyspieszy dzialanie programu, moze wystarczy przesunac statek
+def wstaw_statek(rozmiar_statku, plansza, lista_sasiadow):
+    parametry_statku = losuj_statek(rozmiar_statku, plansza, lista_sasiadow)
+    orientacja = parametry_statku[2]
+    wspX = parametry_statku[0]
+    wspY = parametry_statku[1]
+
+    # uzupelniam liste sasiadow o nowych i wstawiam statek w wylosowane miejsce
+    lista_sasiadow.extend(stworz_liste_sasiadow(rozmiar_statku, orientacja, wspX, wspY))
+
+    # na razie wstawiam tylko statki w prawo i w dół (plusując wspX i wspY, nie minusuję)
+    for r in range(0, rozmiar_statku):
+        plansza[wspX][wspY] = 1
+        if orientacja == 0:
+            wspX += 1
+        else:
+            wspY += 1
+    return plansza
+
+
+# wizualizacja planszy przy uzyciu visualife
+def rysowanie(drawing, nazwa, x0, y0):
+    for i in range(10):
+        for j in range(10):
+            key = nazwa + ":%d%d" % (j, i)
+            drawing.square(nazwa+":"+str(i) + str(j), i * 20 + 15 + x0, j * 20 + 15 + y0, 18, fill="azure", stroke="black")
+            drawing.define_binding(key, "click", trafiony)
+    drawing.close()
+    drawing.apply_binding()
+
+
+def kolorowanie(nazwa, plansza):
+    for k in range(0, 10):
+        for l in range(0, 10):
+            if plansza[k][l] == 1:
+                key = nazwa+":%d%d" % (l, k)
+                document[key].style.fill = "pink"
+                print(key)
+
+
+def trafiony(event):
+    key = event.target.id
+    """if plansza[][] == 1:
+        document[key].style.fill = "yellow"
+    elif plansza[][] == 0:
+        document[key].style.fill = "grey" """
+
+
+# funkcja zwracająca wypelnione startowe plansze gracza i komputera
+def generator_planszy(drawing):
+    dostepne_statki = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
+    plansza_gracz = []
+    plansza_komputer = []
+
+    # inicjacja pustych planszy wypełnionych zerami
+    n_planszy = 10
+    for i in range(0, n_planszy):
+        plansza_gracz.append([])
+        plansza_komputer.append([])
+        for j in range(0, n_planszy):
+            plansza_gracz[i].append(0)
+            plansza_komputer[i].append(0)
+
+    lista_sasiadow_gracz = []
+    lista_sasiadow_komp = []
+
+    # wstawianie jedynek w miejsce, gdzie mają być statki (losowo)
+    for k in range(0, len(dostepne_statki)):
+        wstaw_statek(dostepne_statki[k], plansza_gracz, lista_sasiadow_gracz)
+        wstaw_statek(dostepne_statki[k], plansza_komputer, lista_sasiadow_komp)
+    rysowanie(drawing, "komputer", 250, 0)
+    rysowanie(drawing, "gracz", 0, 0)
+    kolorowanie("komputer", plansza_komputer)
+    kolorowanie("gracz", plansza_gracz)
+
+    print("gracz", *plansza_gracz, sep='\n')
+    print("komp", *plansza_komputer, sep='\n')
+    
+    #return plansza
