@@ -1,0 +1,35 @@
+from browser import document
+from visualife.core.Plot import Plot
+from visualife.core.HtmlViewport import HtmlViewport
+import tworzenie_planszy
+import random
+
+# wywołanie losowania planszy gracza i komputera
+drawing = HtmlViewport(document['svg'], 900, 700)
+tworzenie_planszy.generator_planszy(drawing)
+
+
+# symulacja ruchu komputera - po trafieniu od razu losowo przeszukuje okolice w tym samym ruchu
+def ruch_komputera(plansza, lista_strzalow):
+    wspolrzednaX = random.randint(0, len(plansza) - 1)
+    wspolrzednaY = random.randint(0, len(plansza) - 1)
+    lista_strzalow.append([wspolrzednaX, wspolrzednaY])
+    while plansza[wspolrzednaX][wspolrzednaY] == 1:
+        plansza[wspolrzednaX][wspolrzednaY] = 2  # oznaczenie na trafiony
+        flaga_strona = 1
+        while flaga_strona != 0:
+            strona = random.randint(0, 3)  # 0 lewo, 1 prawo, 2 gora, 3 dol
+            if strona == 0 and [wspolrzednaX - 1, wspolrzednaY] not in lista_strzalow:
+                wspolrzednaX -= 1
+                flaga_strona = 0
+            elif strona == 1 and [wspolrzednaX + 1, wspolrzednaY] not in lista_strzalow:
+                wspolrzednaX += 1
+                flaga_strona = 0
+            elif strona == 2 and [wspolrzednaX, wspolrzednaY - 1] not in lista_strzalow:
+                wspolrzednaY -= 1
+                flaga_strona = 0
+            elif strona == 3 and [wspolrzednaX, wspolrzednaY + 1] not in lista_strzalow:
+                wspolrzednaY += 1
+                flaga_strona = 0
+            else:
+                flaga_strona = 1
