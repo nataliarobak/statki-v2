@@ -1,0 +1,14 @@
+# def symulacja(plansza_gracz, plansza_komputer):
+#     lista_strzalow_komp = []
+#     ktos_przegral = 0
+#     i = 0
+#     while ktos_przegral == 0:
+#
+#         # ruch_komputera(plansza_gracz, lista_strzalow_komp)
+#         i += 1
+#         if i == 10:
+#             ktos_przegral = 1
+#
+#
+# def przygotuj_ruch_komputera(event):
+#     ruch_komputera(plansza_gracz, lista_strzalow_komputera)
